@@ -1,0 +1,138 @@
+<?php
+
+namespace Douyasi\Http\Controllers\Admin;
+
+use Douyasi\Http\Requests\TagRequest;
+use Douyasi\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Douyasi\Repositories\TagRepository;
+
+
+/**
+ * 标签资源控制器
+ * TODO 暂未完善
+ *
+ * @author raoyc<raoyc2009@gmail.com>
+ */
+class AdminTagController extends BackController
+{
+    protected $tag;
+
+    public function __construct(
+        TagRepository $tag)
+    {
+        parent::__construct();
+        $this->tag =$tag;
+        
+        if (! user('object')->can('manage_contents')) {
+            $this->middleware('deny403');
+        }
+    }
+    
+	
+    /**
+     * Display a listing of the resource.
+     *
+     * @return Response
+     */
+    public function index()
+    {
+        //
+		$tags = $this->tag->index();
+        //dd($tags);
+        return view('back.tag.index',compact('tags'));
+    }
+
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return Response
+     */
+    public function create()
+    {
+        //
+		return view('back.tag.create');
+    }
+
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @return Response
+     */
+    public function store(TagRequest $request)
+    {
+        //
+		$data = $request->all();
+        $tag = $this->tag->store($data, 'tag');
+        if ($tag->id) {
+            return redirect()->route('admin.tag.index')->with('message', '成功新增标签！');
+        } else {
+            return redirect()->back()->withInput($request->input())->with('fail', '数据库操作返回异常！');
+        }
+    }
+
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return Response
+     */
+    public function show($id)
+    {
+        //
+    }
+
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return Response
+     */
+    public function edit($id)
+    {
+        //
+		$tag = $this->tag->edit($id, 'tag');
+        return view('back.tag.edit', ['data' => $tag]);
+    }
+
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  int  $id
+     * @return Response
+     */
+    public function update(TagRequest $request, $id)
+    {
+        //
+		$data = $request->all();
+        $this->tag->update($id, $data, 'tag');
+        return redirect()->route('admin.tag.index')->with('message', '修改标签成功！');
+    }
+
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return Response
+     */
+    public function destroy($id)
+    {
+        //
+		 if ($id == 1) {
+            return redirect()->route('admin.tag.index')->with('fail', 'ID为1的默认标签不能被删除！！');
+        } else {
+            if ($this->tag->hasContent('tag', $id)) {
+                return redirect()->route('admin.tag.index')->with('fail', '该标签下还存在文章，不能被删除；请清空该标签下文章后再试！！');
+            } else {
+                $this->tag->destroy($id, 'tag');
+                return redirect()->route('admin.tag.index')->with('message', '删除标签成功！');
+            }
+        }
+    }
+}

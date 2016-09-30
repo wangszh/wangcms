@@ -1,0 +1,46 @@
+server {
+    listen 80;
+    # listen 443 ssl;
+    server_name www.yacf.com;
+    root "/home/wwwroot/default/yascmf/public";
+
+    index index.php index.htm index.html;
+
+
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+
+
+
+
+
+
+
+
+
+
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass unix:/tmp/php-cgi.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+
+
+
+
+
+
+
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+
+
+
+}
